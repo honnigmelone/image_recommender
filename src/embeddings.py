@@ -121,6 +121,6 @@ def generate_embeddings(imgdata_path, output_path, device):
 
     print(f"Final embeddings saved to {output_path}")
 
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-generate_embeddings("data/image_data.pkl", "data/embeddings.pkl", device)
+if __name__ == "__main__":
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    generate_embeddings("data/image_data.pkl", "data/embeddings.pkl", device)
