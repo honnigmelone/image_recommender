@@ -61,6 +61,21 @@ def get_embedding(img, model, device):
             return None
         return model(img_tensor.to(device)).cpu().numpy().flatten()
     
+def input_image_embedding(img_path):
+
+    img = Image.open(img_path)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Load pre-trained model
+    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+    model.fc = nn.Identity()
+    model.eval().to(device)
+    
+
+    # Get the embedding
+    embedding = get_embedding(img, model, device)
+    return embedding
+    
     
 def generate_embeddings(imgdata_path, output_path, device):
     """Generate and save embeddings, loading from checkpoint if available."""

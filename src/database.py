@@ -9,7 +9,7 @@ def create_table():
     conn = sqlite3.connect(DATABASE_PATH)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS images
-                 (image_id INTEGER, root TEXT, file TEXT, size TEXT)''')
+                 (image_id INTEGER PRIMARY KEY, root TEXT, file TEXT, size TEXT)''')
     conn.commit()
     conn.close()
 
