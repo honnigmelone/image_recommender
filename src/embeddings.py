@@ -74,10 +74,8 @@ def generate_embeddings(imgdata_path, output_path, device):
     model.eval().to(device)
 
     # Load existing embeddings (checkpoint)
-    existing_embeddings = load_existing_embeddings(output_path)
-    processed_ids = {entry["image_id"] for entry in existing_embeddings}
-
-    embeddings = existing_embeddings  # Continue from the last checkpoint
+    embeddings = load_existing_embeddings(output_path)
+    processed_ids = {entry["image_id"] for entry in embeddings}
 
     for i, data in enumerate(tqdm(image_data, desc="Generating Embeddings")):
         image_id, root, file = data["image_id"], data["root"], data["file"]
@@ -111,19 +109,3 @@ def generate_embeddings(imgdata_path, output_path, device):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 generate_embeddings("src/image_data.pkl", "src/embeddings.pkl", device)
-
-
-# def get_embedding(img, device):
-#     """
-#     Extract the embedding of an image tensor using the pre-trained resnet50 model and return a numpy array.
-#     """
-    
-#     # Load a pre-trained ResNet model and replace the final layer
-#     model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
-#     model.fc = nn.Identity()  # Replace the fully connected layer with an identity layer
-#     model.eval() # Set the model to evaluation mode
-
-#     with torch.no_grad():
-#         model.to(device)
-#         img = preprocess(img).to(device)
-#         return model(img).cpu().numpy().flatten()
