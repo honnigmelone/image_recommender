@@ -108,4 +108,4 @@ def generate_embeddings(imgdata_path, output_path, device):
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-generate_embeddings("src/image_data.pkl", "src/embeddings.pkl", device)
+generate_embeddings("data/image_data.pkl", "data/embeddings.pkl", device)
