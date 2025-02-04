@@ -56,15 +56,7 @@ def load_image_data(image_data_path):
     return image_data
 
 
-def process_images(image_paths, image_size=(32, 32)):
-    """
-    Load and preprocess images from given paths.
-    Args:
-        image_paths (list): List of image file paths.
-        image_size (tuple): Desired size of the images (width, height).
-    Returns:
-        np.array: Array of preprocessed image data.
-    """
+def process_images(image_paths, image_size=(12, 12)):
     image_arrays = []
     for path in tqdm(image_paths):
         try:
