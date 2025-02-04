@@ -12,6 +12,7 @@ def generator_to_pickle(path_to_dir):
                 yield root, file, size
 
 
+
 def save_data_to_pickle(gen, output_path):
     image_id = 0
     image_metadata_list = []
@@ -23,6 +24,6 @@ def save_data_to_pickle(gen, output_path):
     with open(output_path, "wb") as f:
         pickle.dump(image_metadata_list, f)
 
-
-gen = generator_to_pickle(PATH_TO_IMAGE_DATA)
-save_data_to_pickle(gen, IMAGE_DATA_OUTPUT_PATH)
+if __name__ == "__main__":
+    gen = generator_to_pickle(PATH_TO_IMAGE_DATA)
+    save_data_to_pickle(gen, IMAGE_DATA_OUTPUT_PATH)
