@@ -1,8 +1,6 @@
 import cv2
 import numpy as np
-import sqlite3
 import pickle
-from PIL import Image
 import os
 from tqdm import tqdm
 
