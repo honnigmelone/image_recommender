@@ -11,6 +11,9 @@ from embeddings import input_image_embedding
 from histograms import input_image_histogram
 from phashes import input_image_phash
 
+CACHED_DATA = None
+
+
 def plot_similar_images(input_images, top_similarities, target_size=(512,512)):
     
     # Combine images into a single image for visualization
@@ -39,7 +42,7 @@ def plot_similar_images(input_images, top_similarities, target_size=(512,512)):
     plt.tight_layout()
     plt.show()
 
-def calculate_similarities(input_images, mode, top_k=5, metric="cosine"):
+def calculate_similarities(input_images, mode, cursor, top_k=5, metric="cosine"):
 
     mode = mode.lower()
 
@@ -52,12 +55,12 @@ def calculate_similarities(input_images, mode, top_k=5, metric="cosine"):
     elif mode == "embeddings":
         input_transformed = np.mean([input_image_embedding(image) for image in input_images], axis=0)
         X = np.array([entry["embeddings"] for entry in data])
-    elif mode == "phases":
+    elif mode == "phashes":
         input_transformed = np.mean([input_image_phash(image) for image in input_images], axis=0)
         X = np.array([entry["phashes"] for entry in data])
 
     else:
-        raise ValueError("Invalid input :O  You must choose between color, embeddings and phases.")
+        raise ValueError("Invalid input :O  You must choose between color, embeddings and phashes.")
 
     
     # Input shape (D,)
@@ -65,28 +68,35 @@ def calculate_similarities(input_images, mode, top_k=5, metric="cosine"):
     if metric == "cosine":
         input_vec = input_transformed.reshape(1, -1)  # shape (1, D)
         sims = cosine_similarity(input_vec, X).flatten()  # shape (N,)
-        sorted_sims = np.argsort(sims)[::-1]  # Higher = more similar.
+        top_k_indices = np.argpartition(-sims, top_k)[:top_k]  # Select top-K largest (negated for descending order)
+        top_k_indices = top_k_indices[np.argsort(-sims[top_k_indices])]  # Sort descending
+
     # Vectorized distance with numpy
     elif metric == "euclidean":
         sims = np.linalg.norm(X - input_transformed, axis=1)
-        sorted_sims = np.argsort(sims)  # Lower distance = more similar.
+        top_k_indices = np.argpartition(sims, top_k)[:top_k]  # Select top-K smallest
+        top_k_indices = top_k_indices[np.argsort(sims[top_k_indices])]  # Sort ascending
+
     elif metric == "manhattan":
         sims = np.sum(np.abs(X - input_transformed), axis=1)
-        sorted_sims = np.argsort(sims)  # Lower distance = more similar.
+        top_k_indices = np.argpartition(sims, top_k)[:top_k]
+        top_k_indices = top_k_indices[np.argsort(sims[top_k_indices])]
+
     elif metric == "hamming":
         # Vectorized Hamming distance
         sims = np.sum(input_transformed != X, axis=1)  # Lower distance = more similar
-        sorted_sims = np.argsort(sims)
+        top_k_indices = np.argpartition(sims, top_k)[:top_k]
+        top_k_indices = top_k_indices[np.argsort(sims[top_k_indices])]
 
     else:
         raise ValueError("Invalid metric! Use 'cosine', 'euclidean', or 'manhattan'.")
 
     # Retrieve top-k similar images
     top_similarities = []
-    for i in sorted_sims[:top_k]:
+    for i in top_k_indices:
         image_id = data[i]["image_id"]
         sim_value = sims[i]  # Similarity or distance value
-        file_path = select_image_from_database(image_id)
+        file_path = select_image_from_database(image_id, cursor)
 
         if file_path:
             top_similarities.append((image_id, sim_value, file_path))

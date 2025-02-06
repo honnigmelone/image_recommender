@@ -34,12 +34,9 @@ def get_count():
     conn.close()
     return count
 
-def select_image_from_database(image_id):
-    conn = sqlite3.connect(DATABASE_PATH)
-    c = conn.cursor()
+def select_image_from_database(image_id, c):
     c.execute('SELECT root, file FROM images WHERE image_id = ?', (image_id,))
     result = c.fetchone()
-    conn.close()
     if result:
         root,file = result
         return os.path.join(root, file)

@@ -10,29 +10,50 @@ from config import IMAGE_DATA_OUTPUT_PATH, DATA_ROOT
 CHECKPOINT_INTERVAL = 1000
 
 
-def get_histogram(image, bins=(64)):
+def get_histogram(image, bins=[8, 8, 8]):
     """
     Calculates and normalizes the color histogram of an image
     """
     image = np.array(image)
+    histogram = cv2.calcHist([image], [0, 1, 2], None, bins, [0, 256, 0, 256, 0, 256])
+    histogram = cv2.normalize(histogram, histogram).flatten()
+
+    return histogram
+
+def get_hsv_histogram(image, bins=[8, 8, 8]):
+    """
+    Calculates and normalizes the HSV color histogram of an image.
+    """
+    image = np.array(image)  # Convert image to NumPy array
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)  # Convert to HSV color space
+
+    # Compute the 3D histogram (H, S, V channels)
+    histogram = cv2.calcHist([hsv_image], [0, 1, 2], None, bins, [0, 180, 0, 256, 0, 256])
+
+    # Normalize the histogram so that the values sum to 1
+    histogram = cv2.normalize(histogram, histogram).flatten()
+
+    return histogram
+
+def input_image_hsv_histogram(image):
+    """
+    Computes the HSV histogram for an input image.
+    """
+    image = Image.open(image)
+    if image.mode != "RGB":
+        image = image.convert("RGB")
+       
+    cv2.cvtColor(np.array(image), cv2.COLOR_RGB2HSV)
     
-    red_hist = cv2.calcHist([image], [0], None, [bins], [0, 256])
-    green_hist = cv2.calcHist([image], [1], None, [bins], [0, 256])
-    blue_hist = cv2.calcHist([image], [2], None, [bins], [0, 256])
-
-    red_hist /= red_hist.sum()
-    green_hist /= green_hist.sum()
-    blue_hist /= blue_hist.sum()
-
-    np_hist = np.concatenate((red_hist, green_hist, blue_hist), axis=0).reshape(-1)
-    return np_hist
+    return get_hsv_histogram(image)
 
 
-def input_image_histogram(img_path):
+
+def input_image_histogram(image):
     """
     Computes the histogram for an input image.
     """
-    image = Image.open(img_path)
+    image = Image.open(image)
 
     if image.mode != "RGB":
         image = image.convert("RGB")
