@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 
 
-def get_hog_features(image):
+def get_hog(image):
     """
     Extracts HOG features from an image.
     """
