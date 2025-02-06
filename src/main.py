@@ -24,12 +24,10 @@ def main():
 
     if os.path.exists(FEATURE_DATA_OUTPUT_PATH):
         with open(os.path.join(FEATURE_DATA_OUTPUT_PATH), "rb") as f:
-            feature_data = pickle.load(f)
+            processed_ids = {entry["image_id"] for entry in pickle.load(f)}
 
-
-        processed_ids = {entry["image_id"] for entry in feature_data}
     else:
-        processed_ids = []
+        processed_ids = set()
 
     # Define model for embeddings
     # Load pre-trained model
@@ -50,15 +48,15 @@ def main():
         
         try:
 
-            image = Image.open(filepath)
+            with Image.open(filepath) as image:
 
-            if image.mode != "RGB":
-                image = image.convert("RGB")
+                if image.mode != "RGB":
+                    image = image.convert("RGB")
 
 
-            embeddings = get_embedding(image, model, device)
-            hists = get_histogram(image)
-            phashes = get_phash(image)
+                embeddings = get_embedding(image, model, device)
+                hists = get_histogram(image)
+                phashes = get_phash(image)
 
 
             feature_data.append({"image_id": image_id,"embeddings":embeddings, "colors": hists, "phashes": phashes})
@@ -71,6 +69,7 @@ def main():
         if len(feature_data) % CHECKPOINT == 0:
             with open(FEATURE_DATA_OUTPUT_PATH, "wb") as f:
                 pickle.dump(feature_data, f)
+            feature_data.clear()
 
             print(f"Checkpoint reached. Saved {len(feature_data)} embeddings to pickle file.")
 
