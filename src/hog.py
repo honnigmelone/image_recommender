@@ -7,6 +7,7 @@ def get_hog(image):
     """
     Extracts HOG features from an image.
     """
+    image = image.resize((64, 64))
     image = np.array(image)
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     features = hog(gray, pixels_per_cell=(8, 8), cells_per_block=(2, 2), feature_vector=True)
