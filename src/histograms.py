@@ -3,9 +3,43 @@ import numpy as np
 import pickle
 import os
 from tqdm import tqdm
+from PIL import Image
+from config import IMAGE_DATA_OUTPUT_PATH, DATA_ROOT
 
 # checkpoint size, in case it crashes :(
-CHECKPOINT_INTERVAL = 10000
+CHECKPOINT_INTERVAL = 1000
+
+
+def get_histogram(image, bins=(64)):
+    """
+    Calculates and normalizes the color histogram of an image
+    """
+    image = np.array(image)
+    
+    red_hist = cv2.calcHist([image], [0], None, [bins], [0, 256])
+    green_hist = cv2.calcHist([image], [1], None, [bins], [0, 256])
+    blue_hist = cv2.calcHist([image], [2], None, [bins], [0, 256])
+
+    red_hist /= red_hist.sum()
+    green_hist /= green_hist.sum()
+    blue_hist /= blue_hist.sum()
+
+    np_hist = np.concatenate((red_hist, green_hist, blue_hist), axis=0).reshape(-1)
+    return np_hist
+
+
+def input_image_histogram(img_path):
+    """
+    Computes the histogram for an input image.
+    """
+    image = Image.open(img_path)
+
+    if image.mode != "RGB":
+        image = image.convert("RGB")
+
+    return get_histogram(image)
+
+##############################################################################################################
 
 def load_data(path):
     """
@@ -23,33 +57,6 @@ def load_existing_histograms(path):
             return pickle.load(f)
     return []
 
-def load_image(image_path):
-    """
-    Loads an image from the given path and returns it as a RGB array.
-    """
-    image = cv2.imread(image_path)
-    if image is None:
-        return None
-    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    return np.array(image_rgb)
-
-def calculate_histogram(image, bins=(8, 8, 8)):
-    """
-    Calculates and normalizes the color histogram of an image by flattening it.
-    """
-    histogram = cv2.calcHist([image], [0, 1, 2], None, bins, [0, 256, 0, 256, 0, 256])
-    cv2.normalize(histogram, histogram)
-    return histogram.flatten()
-
-def input_image_histogram(img_path):
-    """
-    Computes the histogram for an input image.
-    """
-    image = load_image(img_path)
-    if image is None:
-        return None
-    return calculate_histogram(image)
-
 def generate_histograms(imgdata_path, output_path):
     """
     Generates and saves color histograms, loading from the last checkpoint if there is one available.
@@ -65,13 +72,12 @@ def generate_histograms(imgdata_path, output_path):
             continue
         
         img_path = os.path.join(root, file)
-        image = load_image(img_path)
-        if image is None:
-            print(f"Error loading image: {img_path}")
-            continue
+        image = Image.open(img_path)
+        if image.mode != "RGB":
+            image = image.convert("RGB")
         
-        histogram = calculate_histogram(image)
-        histograms.append({"image_id": image_id, "histogram": histogram})
+        histogram = get_histogram(image)
+        histograms.append({"image_id": image_id, "colors": histogram})
         
         if len(histograms) % CHECKPOINT_INTERVAL == 0:
             with open(output_path, "wb") as f:
@@ -83,4 +89,4 @@ def generate_histograms(imgdata_path, output_path):
     print(f"Final histograms saved to {output_path}")
 
 if __name__ == "__main__":
-    generate_histograms("data/image_data.pkl", "data/histograms.pkl")
+    generate_histograms(IMAGE_DATA_OUTPUT_PATH, os.path.join(DATA_ROOT, "histograms.pkl"))

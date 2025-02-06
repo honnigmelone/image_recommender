@@ -4,17 +4,26 @@ import numpy as np
 from PIL import Image
 from matplotlib import pyplot as plt
 from matplotlib import patches 
-from config import PROJECT_ROOT
+from config import FEATURE_DATA_OUTPUT_PATH
 from sklearn.metrics.pairwise import cosine_similarity
 from database import select_image_from_database
 from embeddings import input_image_embedding
+from histograms import input_image_histogram
+from phashes import input_image_phash
 
-def plot_similar_images(input_image, top_similarities, target_size=(512,512)):
+def plot_similar_images(input_images, top_similarities, target_size=(512,512)):
     
-    img = Image.open(input_image).resize(target_size)
+    # Combine images into a single image for visualization
+    combined_width = target_size[0] * (len(input_images))
+    combined_image = Image.new("RGB", (combined_width, target_size[1]))
 
+    for i, image in enumerate(input_images):
+        img = Image.open(image).resize(target_size).convert("RGB")
+        combined_image.paste(img, (i * target_size[0], 0))
+
+    # Plot the combined image and the top similar images
     fig, axs = plt.subplots(1, len(top_similarities)+2, figsize=(15,5), gridspec_kw={'width_ratios': [1.5, 0.01] + [1] * len(top_similarities)})
-    axs[0].imshow(img)
+    axs[0].imshow(combined_image)
     axs[0].axis("off")
     axs[0].set_title("Input Image")
 
@@ -30,28 +39,28 @@ def plot_similar_images(input_image, top_similarities, target_size=(512,512)):
     plt.tight_layout()
     plt.show()
 
-def calculate_similarities(input_image, mode, top_k=5, metric="cosine"):
+def calculate_similarities(input_images, mode, top_k=5, metric="cosine"):
 
     mode = mode.lower()
 
-    if mode == "color":
-        pkl_path = os.path.join(PROJECT_ROOT, r"data/color.pkl")
-        #input_transformed = get_hist(input_image)
-    elif mode == "embeddings":
-        pkl_path = os.path.join(PROJECT_ROOT, r"data/embeddings.pkl")
-        input_transformed = input_image_embedding(input_image)
-    elif mode == "phases":
-        pkl_path = os.path.join(PROJECT_ROOT, r"data/phases.pkl")
-        #input_transformed = get_phases(input_image)
-    else:
-        raise ValueError("Invalid input :O  You must choose between color, embeddings and phases.")
-    
-    with open(pkl_path, "rb") as f:
+    with open(FEATURE_DATA_OUTPUT_PATH, "rb") as f:
         data = pickle.load(f)
 
+    if mode == "color":
+        input_transformed = np.mean([input_image_histogram(image) for image in input_images], axis=0)
+        X = np.array([entry["colors"] for entry in data])
+    elif mode == "embeddings":
+        input_transformed = np.mean([input_image_embedding(image) for image in input_images], axis=0)
+        X = np.array([entry["embeddings"] for entry in data])
+    elif mode == "phases":
+        input_transformed = np.mean([input_image_phash(image) for image in input_images], axis=0)
+        X = np.array([entry["phashes"] for entry in data])
+
+    else:
+        raise ValueError("Invalid input :O  You must choose between color, embeddings and phases.")
+
     
-    X = np.array([next(value for key, value in entry.items() if key != "image_id") for entry in data])
-    # input shape (D,)
+    # Input shape (D,)
     # Compute similarity or distance in a vectorized manner.
     if metric == "cosine":
         input_vec = input_transformed.reshape(1, -1)  # shape (1, D)
@@ -64,6 +73,10 @@ def calculate_similarities(input_image, mode, top_k=5, metric="cosine"):
     elif metric == "manhattan":
         sims = np.sum(np.abs(X - input_transformed), axis=1)
         sorted_sims = np.argsort(sims)  # Lower distance = more similar.
+    elif metric == "hamming":
+        # Vectorized Hamming distance
+        sims = np.sum(input_transformed != X, axis=1)  # Lower distance = more similar
+        sorted_sims = np.argsort(sims)
 
     else:
         raise ValueError("Invalid metric! Use 'cosine', 'euclidean', or 'manhattan'.")
@@ -78,4 +91,4 @@ def calculate_similarities(input_image, mode, top_k=5, metric="cosine"):
         if file_path:
             top_similarities.append((image_id, sim_value, file_path))
 
-    plot_similar_images(input_image, top_similarities)
+    plot_similar_images(input_images, top_similarities)
