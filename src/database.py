@@ -9,15 +9,15 @@ def create_table():
     conn = sqlite3.connect(DATABASE_PATH)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS images
-                 (image_id INTEGER PRIMARY KEY, root TEXT, file TEXT, size TEXT)''')
+                 (image_id INTEGER PRIMARY KEY, root TEXT, file TEXT)''')
     conn.commit()
     conn.close()
 
 def insert_data(image_data):
     conn = sqlite3.connect(DATABASE_PATH)
     c = conn.cursor()
-    rows = [(d["image_id"], d["root"], d["file"], d["size"]) for d in image_data]
-    c.executemany('INSERT INTO images VALUES (?,?,?,?)', rows)
+    rows = [(d["image_id"], d["root"], d["file"]) for d in image_data]
+    c.executemany('INSERT INTO images VALUES (?,?,?)', rows)
     conn.commit()
     conn.close()
 
@@ -34,17 +34,14 @@ def get_count():
     conn.close()
     return count
 
-def select_image_from_database(image_id):
-    conn = sqlite3.connect(DATABASE_PATH)
-    c = conn.cursor()
+def select_image_from_database(image_id, c):
     c.execute('SELECT root, file FROM images WHERE image_id = ?', (image_id,))
     result = c.fetchone()
-    conn.close()
     if result:
         root,file = result
         return os.path.join(root, file)
 
-def main():
+def generate_insert_into_database():
     create_table()
     image_data = load_data()
     insert_data(image_data)
@@ -52,4 +49,4 @@ def main():
     print(f"Data inserted successfully. Row count: {row_count}")
 
 if __name__ == "__main__":
-    main()
+    generate_insert_into_database()
