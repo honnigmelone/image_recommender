@@ -3,7 +3,9 @@ import numpy as np
 import os
 from tqdm import tqdm
 from PIL import Image
-from config import PROJECT_ROOT
+from config import IMAGE_DATA_OUTPUT_PATH, FEATURE_DATA_OUTPUT_PATH, LOGS_ROOT
+from tensorboard.plugins import projector
+import tensorflow as tf
 
 
 
@@ -36,7 +38,7 @@ def create_sprite(data):
     data = data.reshape((n * data.shape[1], n * data.shape[3], 3))
     return data
 
-def create_metadata_file(image_data, metadata_path="logs/metadata.tsv"):
+def create_metadata_file(image_data, metadata_path):
     """
     Create a metadata file containing image paths.
     
@@ -69,28 +71,72 @@ def process_images(image_paths, image_size=(12, 12)):
             print(f"Skipping {path}: {e}")
     return np.stack(image_arrays)
 
+def prepare_tensorboard_data(mode):
 
+    # Remove old checkpoint files so we always create fresh ones
+    for filename in os.listdir(LOGS_ROOT):
+        if filename.startswith("embedding.ckpt") or filename == "checkpoint":
+            file_path = os.path.join(LOGS_ROOT, filename)
+            os.remove(file_path)
 
-if __name__ == "__main__":
+    # Load the embeddings data
+    with open (FEATURE_DATA_OUTPUT_PATH, 'rb') as f:
+        embeddings_data = pickle.load(f)
+    embeddings_array = np.array([entry[mode] for entry in embeddings_data])
+
+    # Create a variable to hold the embeddings
+    embedding_var = tf.Variable(embeddings_array, name='embedding')
+
+    # Create and save a checkpoint for the embedding
+    checkpoint = tf.train.Checkpoint(embedding=embedding_var)
+    checkpoint.save(os.path.join(LOGS_ROOT, 'embedding.ckpt'))
+
+    # Set up projector config
+    config = projector.ProjectorConfig()
+    embedding = config.embeddings.add()
+    # The name of the tensor will be suffixed by `/.ATTRIBUTES/VARIABLE_VALUE`.
+    embedding.tensor_name = "embedding/.ATTRIBUTES/VARIABLE_VALUE"
+    embedding.metadata_path = 'metadata.tsv'
+
+    # Add path to the sprite image
+    embedding.sprite.image_path = 'sprite.png'
+    embedding.sprite.single_image_dim.extend([12, 12])
+    projector.visualize_embeddings(LOGS_ROOT, config)
+    print(f'Projector config saved at: {LOGS_ROOT}')
+
+def main(mode):
+    
     os.makedirs("logs", exist_ok=True)
-    image_data_path = os.path.join(PROJECT_ROOT, r"data\image_data.pkl")
 
-    image_data = load_image_data(image_data_path)
+
+    image_data = load_image_data(IMAGE_DATA_OUTPUT_PATH)
 
     # Create metadata file
-    create_metadata_file(image_data, metadata_path=os.path.join(PROJECT_ROOT, r"logs/metadata.tsv"))
+    metadata_path=os.path.join(LOGS_ROOT, "metadata.tsv")
+    if not os.path.exists(metadata_path):
+        create_metadata_file(image_data, metadata_path)
 
     # Map image IDs to paths
     image_id_to_path = {entry["image_id"]: os.path.join(entry["root"], entry["file"]) for entry in image_data}
     image_paths = [image_id_to_path[entry["image_id"]] for entry in image_data]
 
 
-    image_data_array = process_images(image_paths)
-
     # Create sprite image
-    sprite_image = create_sprite(image_data_array)
-    # Convert NumPy array to PIL Image and save
-    sprite_pil = Image.fromarray(sprite_image.astype(np.uint8))
-    sprite_pil.save(os.path.join(PROJECT_ROOT, r"logs/sprite.png"))
+    sprite_image_path = os.path.join(LOGS_ROOT, "sprite.png")
 
-    print("Sprite image saved as logs/sprite.png")
+    if not os.path.exists(sprite_image_path):
+        image_data_array = process_images(image_paths)
+        sprite_image = create_sprite(image_data_array)
+        # Convert NumPy array to PIL Image and save
+        sprite_pil = Image.fromarray(sprite_image.astype(np.uint8))
+        sprite_pil.save(os.path.join(LOGS_ROOT, "sprite.png"))
+
+        print("Sprite image saved as logs/sprite.png")
+    prepare_tensorboard_data(mode)
+
+if __name__ == "__main__":
+    #main("embeddings")
+    main("rgb_hists")
+    
+    # Run the tensorboard command in the terminal
+    # tensorboard --logdir logs/

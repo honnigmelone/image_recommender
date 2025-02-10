@@ -1,0 +1,1 @@
+this acts as a placefolder for the logs root for tensorboard visualisation
