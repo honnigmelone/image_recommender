@@ -146,6 +146,9 @@ def calculate_similarities(input_images, cursor, mode, metric, top_k=5, verbose=
     if verbose:
         print(f"Total execution time: {total_time:.4f} seconds")
 
-
+    plot_start = time.time()
     # Plot the similar images
     plot_similar_images(input_images, top_similarities)
+    plot_end = time.time()
+    if verbose:
+        print(f"Time to plot images: {plot_end - plot_start:.4f} seconds")
