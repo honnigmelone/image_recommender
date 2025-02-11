@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 import sqlite3
 from unittest.mock import patch
+import sys
 
 # weil sich similarities.py nicht im selben ordner befindet (sieht so cleaner aus :D)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
