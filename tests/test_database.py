@@ -4,12 +4,10 @@ import os
 import pickle
 import sys 
 
+# weil sich die database.py nicht im selber ordner befindet (sieht so cleaner aus :D)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
-
 from database import create_table, insert_data, load_data, get_count, select_image_from_database
 
-#from database import *
-#create_table, insert_data, load_data, get_count, select_image_from_database
 
 # test datenbank aufrufen
 @pytest.fixture
