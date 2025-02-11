@@ -5,3 +5,4 @@ torch
 torchvision
 numpy
 Pillow
+imagehash
