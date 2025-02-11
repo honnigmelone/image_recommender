@@ -56,7 +56,7 @@ def test_insert_and_count(db_connection, sample_image_data):
 
 def test_select_image_from_database(db_connection, sample_image_data):
     """
-    testet das abrufen von bildpfaden aus der datenbank
+    testet das Abrufen von Bildpfaden aus der Datenbank
     """
     conn = db_connection
     insert_data(conn, sample_image_data)
@@ -64,5 +64,8 @@ def test_select_image_from_database(db_connection, sample_image_data):
 
     file_path = select_image_from_database(1, c)
     expected_path = os.path.normpath("/test/path/image1.jpg")
+    
+    # windows kompatibel machen
+    expected_path = expected_path.replace("/", os.sep)
     
     assert file_path == expected_path, "Der Dateipfad ist nicht korrekt"
