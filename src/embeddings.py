@@ -34,7 +34,7 @@ def preprocess(image):
     
 def get_embedding(image, model, device):
     """
-    Extract the embedding of an image tensor using the pre-trained resnet50 model and return a numpy array.
+    Extract the embedding of an image tensor using the pre-trained resnet18 model and return a numpy array.
     """
     img_tensor = preprocess(image).to(device)
 

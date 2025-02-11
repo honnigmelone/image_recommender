@@ -1,3 +1,14 @@
-tqdm
 ruff
 pytest
+torch
+torchvision
+numpy
+Pillow
+scikit-learn
+opencv-python
+tqdm
+matplotlib
+umap-learn
+imagehash
+tensorflow
+tensorboard
