@@ -51,9 +51,13 @@ def test_get_embedding(sample_image):
     assert embedding.shape[0] == 512  # ResNet18 gibt 512-dimensionale Vektoren aus
 
 
-def test_input_image_embedding(sample_image):
+def test_input_image_embedding(sample_image, monkeypatch):
     """Testet die Funktion input_image_embedding mit einem RGB-Bild."""
+    # Monkeypatching, um sicherzustellen, dass das Bild nicht erneut geöffnet wird
+    monkeypatch.setattr("embeddings.process_image", lambda x: x)
+    
     embedding = input_image_embedding(sample_image)
     assert isinstance(embedding, np.ndarray)
     assert embedding.shape[0] == 512  # ResNet18 gibt 512-dimensionale Vektoren aus
+
 
