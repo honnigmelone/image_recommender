@@ -6,3 +6,4 @@ torchvision
 numpy
 Pillow
 imagehash
+opencv-python
