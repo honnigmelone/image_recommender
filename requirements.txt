@@ -1,4 +1,3 @@
 tqdm
 ruff
 pytest
-sys
