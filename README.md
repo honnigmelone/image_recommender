@@ -62,7 +62,7 @@ The Image Recommender System consists of a modular pipeline with the following k
    - **TensorBoard & Dimensionality Reduction:**  
      You can also reduce the feature dimensions (e.g., using UMAP) and visualize the embeddings with TensorBoard for an intuitive exploration of the dataset.
 
-For more details, please refer to the [Documentation](link-to-your-documentation).
+For more details, please refer to the [Documentation](Big_Data_Image_Recommender_Doku.pdf).
 
 ---
 
