@@ -97,7 +97,7 @@ After setting up the repository, the pipeline runs in several stages:
 
 ![image](https://github.com/user-attachments/assets/7c78e34f-bfdd-4652-a911-d38aa2778d22)
 
-2. **Run the Generator and create the database**
+2. **Run the Generator and create the database, Run follwoing commands from directory root**
 
 ```
 python src/generator.py
@@ -132,7 +132,7 @@ You can visualize the images either in a Tensorboard or with Dimensionreduction
 ### **Tensorboard**
 
 1. **Prepare Visualization Data**  
-Generate the metadata file, sprite image, and checkpoint data:
+Generate the metadata file, sprite image, and checkpoint data. You can specify the mode in the main function like "embeddings" or "rgb_hists":
 
 ```
 python src/tensorboard_preparation.py
@@ -148,6 +148,13 @@ tensorboard --logdir logs/
 3. **Example visualisation using color similarities with UMAP(UMAP only takes first 5000 entries)**
 ![image](https://github.com/user-attachments/assets/d192ebb7-b4ff-4cb1-aa4f-f883d3d78a8f)
 
+
+### **UMAP**
+
+1. **Just open the jupyter Notebook ```umap_analysis.ipynb``` and play with the functions :)** 
+You can specify the mode, and top_k which represents the cluster values
+Please be aware that umap needs a lot of memory to run on large datasets
+You can either reduce dimensions and cluster afterwards or the other way around depending on your use case!
 
 ## Need Help?
 
