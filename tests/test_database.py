@@ -63,7 +63,7 @@ def test_select_image_from_database(db_connection, sample_image_data):
     c = conn.cursor()
 
     file_path = select_image_from_database(1, c)
-    assert file_path == "/test/path/image1.jpg", "derdDateipfad ist nicht korrekt"
+    assert file_path == "/test/path/image1.jpg", "der Dateipfad ist nicht korrekt"
 
     # testfall für ungültige image IDs
     assert select_image_from_database(999, c) is None, "nicht vorhandene ID sollte none zurückgeben"
