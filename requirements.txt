@@ -1,3 +1,9 @@
 tqdm
 ruff
 pytest
+torch
+torchvision
+numpy
+Pillow
+imagehash
+opencv-python
