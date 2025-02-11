@@ -64,8 +64,6 @@ def test_select_image_from_database(db_connection, sample_image_data):
 
     file_path = select_image_from_database(1, c)
     expected_path = os.path.normpath("/test/path/image1.jpg")
-    
-    # windows kompatibel machen
-    expected_path = expected_path.replace("/", os.sep)
+    file_path = os.path.normpath(file_path)
     
     assert file_path == expected_path, "Der Dateipfad ist nicht korrekt"
