@@ -1,6 +1,9 @@
 tqdm
 ruff
 pytest
+tqdm
+ruff
+pytest
 sys
 sqlite3
 torch
